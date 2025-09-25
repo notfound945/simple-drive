@@ -23,7 +23,7 @@ jobs:
     - name: 📥 安装依赖
       run: |
         echo "📦 安装项目依赖..."
-        npm ci --only=production
+        npm ci
         
     - name: 🔨 构建应用
       run: |

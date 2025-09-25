@@ -14,6 +14,7 @@
   let activeTab: 'mine' | 'all' = 'all';
   let preview: { filename: string; url: string } | null = null;
   let errorMessage = '';
+  let toasts: { id: number; type: 'success' | 'error'; text: string }[] = [];
 
   function saveMyUploads() {
     try {
@@ -56,9 +57,14 @@
     fetchImages();
   });
 
-  function onFileChange(e: Event) {
+  async function onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
     selectedFiles = input.files ? Array.from(input.files) : [];
+    if (selectedFiles.length > 0) {
+      await uploadFiles();
+      // reset input to allow re-selecting the same files again
+      input.value = '';
+    }
   }
 
   async function uploadFiles() {
@@ -81,8 +87,10 @@
       } catch {}
       selectedFiles = [];
       await fetchImages();
+      pushToast('success', '上传成功');
     } catch (err) {
       errorMessage = (err as Error).message;
+      pushToast('error', errorMessage || '上传失败');
     } finally {
       uploading = false;
     }
@@ -116,22 +124,28 @@
       document.body.removeChild(link);
     } catch {}
   }
+
+  function pushToast(type: 'success' | 'error', text: string) {
+    const id = Date.now() + Math.random();
+    toasts = [...toasts, { id, type, text }];
+    setTimeout(() => {
+      toasts = toasts.filter((t) => t.id !== id);
+    }, 2400);
+  }
 </script>
 
 <svelte:window on:keydown={onKeydown} />
 
 <main class="page">
-  <h1>局域网图片上传</h1>
-  <section class="toolbar">
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title">局域网图片上传</div>
+      <section class="toolbar">
     <input id="file-input" class="file-input" type="file" accept="image/*" multiple on:change={onFileChange} />
     <label class="btn btn-outline" for="file-input" aria-label="选择图片">
       <ImageIcon size={16} />
       选择图片
     </label>
-    <button class="btn btn-primary" on:click={uploadFiles} disabled={uploading || selectedFiles.length === 0}>
-      <UploadIcon size={16} />
-      {uploading ? '上传中…' : `上传${selectedFiles.length ? `（${selectedFiles.length}）` : ''}`}
-    </button>
     <button class="btn" on:click={fetchImages} aria-label="刷新图片列表">
       <RefreshIcon size={16} />
       刷新
@@ -139,7 +153,9 @@
     {#if errorMessage}
       <span class="error">{errorMessage}</span>
     {/if}
-  </section>
+      </section>
+    </div>
+  </header>
 
   <section>
     <h2>图片库</h2>
@@ -185,4 +201,10 @@
       </div>
     </button>
   {/if}
+
+  <div class="toast-container" aria-live="polite" aria-atomic="true">
+    {#each toasts as t (t.id)}
+      <div class="toast {t.type}">{t.text}</div>
+    {/each}
+  </div>
 </main>

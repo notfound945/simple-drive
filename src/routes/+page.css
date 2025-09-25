@@ -1,8 +1,33 @@
 main.page {
   max-width: 900px;
-  margin: 2rem auto;
-  padding: 1rem;
+  padding: 0 1rem 2rem 1rem;
 }
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #ffffffee;
+  backdrop-filter: saturate(180%) blur(6px);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
+  margin: -0.5rem -0.75rem 0.75rem; /* stretch to container edges */
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.header .toolbar { margin: 0; }
 
 .toolbar {
   margin: 1rem 0;
@@ -11,6 +36,29 @@ main.page {
   align-items: center;
   flex-wrap: wrap;
 }
+
+.toast-container {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 10px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 14px;
+  line-height: 1.25;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.toast.success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.toast.error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
 
 .file-input {
   position: absolute;

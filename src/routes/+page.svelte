@@ -15,6 +15,7 @@
 
   let selectedFiles: File[] = [];
   let uploading = false;
+  let uploadProgress = 0;
   let images: { filename: string; url: string; size: number; format: string; uploadTime: string }[] = [];
   let myUploads = new Set<string>();
   let activeTab: 'mine' | 'all' = 'all';
@@ -149,29 +150,54 @@
   async function uploadFiles() {
     if (selectedFiles.length === 0) return;
     uploading = true;
+    uploadProgress = 0;
     errorMessage = '';
+    let progressInterval: NodeJS.Timeout | null = null;
+    
     try {
+      // 模拟进度条
+      progressInterval = setInterval(() => {
+        if (uploadProgress < 90) {
+          uploadProgress += Math.random() * 20;
+          if (uploadProgress > 90) uploadProgress = 90;
+        }
+      }, 100);
+
       const form = new FormData();
       for (const f of selectedFiles) form.append('file', f);
       const res = await fetch('/api/upload', { method: 'POST', body: form });
+      
+      if (progressInterval) clearInterval(progressInterval);
+      uploadProgress = 100;
+      
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || '上传失败');
       }
+      
       // record uploaded names as "mine"
       try {
         const uploaded: { filename: string; url: string }[] = await res.json();
         for (const it of uploaded) myUploads.add(it.filename);
         saveMyUploads();
       } catch {}
+      
       selectedFiles = [];
       await fetchImages();
       pushToast('success', '上传成功');
+      
+      // 延迟隐藏进度条
+      setTimeout(() => {
+        uploading = false;
+        uploadProgress = 0;
+      }, 500);
+      
     } catch (err) {
+      if (progressInterval) clearInterval(progressInterval);
       errorMessage = (err as Error).message;
       pushToast('error', errorMessage || '上传失败');
-    } finally {
       uploading = false;
+      uploadProgress = 0;
     }
   }
 
@@ -194,13 +220,18 @@
       `确定要删除图片 "${filename}" 吗？此操作不可撤销。`,
       async () => {
         try {
-          const res = await fetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' });
-          if (!res.ok && res.status !== 204) throw new Error('删除失败');
+          const res = await fetch(`/api/delete?filename=${encodeURIComponent(filename)}`, { method: 'DELETE' });
+          if (!res.ok && res.status !== 204) {
+            const errorData = await res.json().catch(() => ({ error: '删除失败' }));
+            throw new Error(errorData.error || '删除失败');
+          }
           myUploads.delete(filename);
           saveMyUploads();
           await fetchImages();
+          pushToast('success', '文件删除成功');
         } catch (err) {
           errorMessage = (err as Error).message;
+          pushToast('error', errorMessage);
         }
       }
     );
@@ -515,32 +546,40 @@
       </div>
     </div>
   {/if}
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div 
-      class="upload-area {isDragOver ? 'dragover' : ''}"
-      role="button"
-      tabindex="0"
-      on:dragover={onDragOver}
-      on:dragenter={onDragEnter}
-      on:dragleave={onDragLeave}
-      on:drop={onDrop}
-      on:click={() => document.getElementById('file-input')?.click()}
-      on:keydown={(e) => e.key === 'Enter' && document.getElementById('file-input')?.click()}
-    >
-      <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
-      <div class="upload-content">
-        <FileIcon size={48} color="#3b82f6" />
-        <div class="upload-text">
-          <div class="upload-title">拖拽文件到此处上传</div>
-          <div class="upload-subtitle">或点击选择文件 (最大 4GB)</div>
-        </div>
-      </div>
-      {#if errorMessage}
-        <div class="upload-error">{errorMessage}</div>
-      {/if}
-    </div>
-  </footer>
   </div>
 </main>
+
+<!-- Footer -->
+<footer class="footer">
+  <!-- 上传进度条 -->
+  {#if uploading}
+    <div class="upload-progress">
+      <div class="progress-bar" style="width: {uploadProgress}%"></div>
+      <div class="progress-text">上传中... {uploadProgress}%</div>
+    </div>
+  {/if}
+  
+  <div 
+    class="upload-area {isDragOver ? 'dragover' : ''}"
+    role="button"
+    tabindex="0"
+    on:dragover={onDragOver}
+    on:dragenter={onDragEnter}
+    on:dragleave={onDragLeave}
+    on:drop={onDrop}
+    on:click={() => document.getElementById('file-input')?.click()}
+    on:keydown={(e) => e.key === 'Enter' && document.getElementById('file-input')?.click()}
+  >
+    <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
+    <div class="upload-content">
+      <FileIcon size={48} color="#3b82f6" />
+      <div class="upload-text">
+        <div class="upload-title">拖拽文件到此处上传</div>
+        <div class="upload-subtitle">或点击选择文件 (最大 4GB)</div>
+      </div>
+    </div>
+    {#if errorMessage}
+      <div class="upload-error">{errorMessage}</div>
+    {/if}
+  </div>
+</footer>

@@ -4,6 +4,13 @@
   import ImageIcon from '$lib/icons/Image.svelte';
   import TrashIcon from '$lib/icons/Trash.svelte';
   import DownloadIcon from '$lib/icons/Download.svelte';
+  import FileIcon from '$lib/icons/File.svelte';
+  import FileTextIcon from '$lib/icons/FileText.svelte';
+  import FileVideoIcon from '$lib/icons/FileVideo.svelte';
+  import FileAudioIcon from '$lib/icons/FileAudio.svelte';
+  import FileArchiveIcon from '$lib/icons/FileArchive.svelte';
+  import FileCodeIcon from '$lib/icons/FileCode.svelte';
+  import FileJsonIcon from '$lib/icons/FileJson.svelte';
   import './+page.css';
 
   let selectedFiles: File[] = [];
@@ -11,7 +18,7 @@
   let images: { filename: string; url: string; size: number; format: string; uploadTime: string }[] = [];
   let myUploads = new Set<string>();
   let activeTab: 'mine' | 'all' = 'all';
-  let preview: { filename: string; url: string } | null = null;
+  let preview: { filename: string; url: string; format: string } | null = null;
   let errorMessage = '';
   let toasts: { id: number; type: 'success' | 'error'; text: string }[] = [];
   let sortBy: 'time-desc' | 'time-asc' | 'name' | 'size-desc' | 'size-asc' = 'time-desc';
@@ -195,6 +202,53 @@
       minute: '2-digit'
     });
   }
+
+  function getFileIcon(format: string) {
+    const ext = format.toLowerCase();
+    
+    // Image files
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) {
+      return ImageIcon;
+    }
+    
+    // Document files
+    if (['txt', 'md', 'doc', 'docx', 'pdf', 'rtf', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'pages', 'numbers', 'key'].includes(ext)) {
+      return FileTextIcon;
+    }
+    
+    // Video files
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'].includes(ext)) {
+      return FileVideoIcon;
+    }
+    
+    // Audio files
+    if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'].includes(ext)) {
+      return FileAudioIcon;
+    }
+    
+    // Archive files
+    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(ext)) {
+      return FileArchiveIcon;
+    }
+    
+    // JSON files
+    if (['json'].includes(ext)) {
+      return FileJsonIcon;
+    }
+    
+    // Code files
+    if (['js', 'ts', 'html', 'css', 'xml', 'py', 'java', 'cpp', 'c', 'php', 'rb', 'go', 'rs'].includes(ext)) {
+      return FileCodeIcon;
+    }
+    
+    // Default file icon
+    return FileIcon;
+  }
+
+  function isImageFile(format: string): boolean {
+    const ext = format.toLowerCase();
+    return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+  }
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -202,12 +256,12 @@
 <main class="page">
   <header class="header">
     <div class="header-inner">
-      <div class="header-title">局域网图片上传</div>
+      <div class="header-title">局域网文件上传</div>
       <section class="toolbar">
-    <input id="file-input" class="file-input" type="file" accept="image/*" multiple on:change={onFileChange} />
-        <label class="btn btn-primary" for="file-input" aria-label="选择图片">
+        <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
+        <label class="btn btn-primary" for="file-input" aria-label="选择文件">
       <ImageIcon size={16} />
-      选择图片
+      选择文件
     </label>
     {#if errorMessage}
       <span class="error">{errorMessage}</span>
@@ -217,7 +271,7 @@
   </header>
 
   <section>
-    <h2>图片库</h2>
+    <h2>文件库</h2>
     <div class="tabs">
       <button class="tab {activeTab === 'all' ? 'active' : ''}" on:click={() => (activeTab = 'all')}>所有上传</button>
       <button class="tab {activeTab === 'mine' ? 'active' : ''}" on:click={() => (activeTab = 'mine')}>本机上传</button>
@@ -285,22 +339,28 @@
       </div>
     </div>
     {#if visibleImages.length === 0}
-      <p>暂无图片</p>
+      <p>暂无文件</p>
     {:else if layout === 'grid'}
       <div class="grid">
-        {#each visibleImages as img}
+        {#each visibleImages as file}
           <div class="card">
-            <button type="button" class="thumb-btn" on:click={() => (preview = img)} aria-label="预览图片">
-              <div class="thumb-wrap">
-                <img src={img.url} alt={img.filename} class="thumb" />
+            {#if isImageFile(file.format)}
+              <button type="button" class="thumb-btn" on:click={() => (preview = file)} aria-label="预览文件">
+                <div class="thumb-wrap">
+                  <img src={file.url} alt={file.filename} class="thumb" />
+                </div>
+              </button>
+            {:else}
+              <div class="file-icon-wrap">
+                <svelte:component this={getFileIcon(file.format)} size={48} color="#6b7280" />
               </div>
-            </button>
-            <div class="filename">{img.filename}</div>
-            <div class="actions btn-group" role="group" aria-label="图片操作">
-              <button type="button" class="btn-icon" on:click={() => downloadImage(img.url, img.filename)} aria-label="下载图片">
+            {/if}
+            <div class="filename" title={file.filename}>{file.filename}</div>
+            <div class="actions btn-group" role="group" aria-label="文件操作">
+              <button type="button" class="btn-icon" on:click={() => downloadImage(file.url, file.filename)} aria-label="下载文件">
                 <DownloadIcon size={14} /> 下载
               </button>
-              <button type="button" class="btn-icon btn-danger" on:click={() => deleteImage(img.filename)} aria-label="删除图片">
+              <button type="button" class="btn-icon btn-danger" on:click={() => deleteImage(file.filename)} aria-label="删除文件">
                 <TrashIcon size={14} /> 删除
               </button>
             </div>
@@ -317,31 +377,37 @@
           <div class="list-col-time">上传时间</div>
           <div class="list-col-actions">操作</div>
         </div>
-        {#each visibleImages as img}
+        {#each visibleImages as file}
           <div class="list-row">
             <div class="list-col-thumb">
-              <button type="button" class="list-thumb-btn" on:click={() => (preview = img)} aria-label="预览图片">
-                <img src={img.url} alt={img.filename} class="list-thumb" />
-              </button>
+              {#if isImageFile(file.format)}
+                <button type="button" class="list-thumb-btn" on:click={() => (preview = file)} aria-label="预览文件">
+                  <img src={file.url} alt={file.filename} class="list-thumb" />
+                </button>
+              {:else}
+                <div class="list-file-icon">
+                  <svelte:component this={getFileIcon(file.format)} size={32} color="#6b7280" />
+                </div>
+              {/if}
             </div>
             <div class="list-col-name">
-              <span class="list-filename" title={img.filename}>{img.filename}</span>
+              <span class="list-filename" title={file.filename}>{file.filename}</span>
             </div>
             <div class="list-col-format">
-              <span class="format-badge">{img.format.toUpperCase()}</span>
+              <span class="format-badge">{file.format.toUpperCase()}</span>
             </div>
             <div class="list-col-size">
-              <span>{formatFileSize(img.size)}</span>
+              <span>{formatFileSize(file.size)}</span>
             </div>
             <div class="list-col-time">
-              <span>{formatDate(img.uploadTime)}</span>
+              <span>{formatDate(file.uploadTime)}</span>
             </div>
             <div class="list-col-actions">
-              <div class="actions btn-group" role="group" aria-label="图片操作">
-                <button type="button" class="btn-icon" on:click={() => downloadImage(img.url, img.filename)} aria-label="下载图片">
+              <div class="actions btn-group" role="group" aria-label="文件操作">
+                <button type="button" class="btn-icon" on:click={() => downloadImage(file.url, file.filename)} aria-label="下载文件">
                   <DownloadIcon size={14} /> 下载
                 </button>
-                <button type="button" class="btn-icon btn-danger" on:click={() => deleteImage(img.filename)} aria-label="删除图片">
+                <button type="button" class="btn-icon btn-danger" on:click={() => deleteImage(file.filename)} aria-label="删除文件">
                   <TrashIcon size={14} /> 删除
                 </button>
               </div>
@@ -358,8 +424,14 @@
       class="modal-backdrop"
       on:click={() => (preview = null)}
     >
-      <div class="modal" role="dialog" aria-modal="true" aria-label="图片预览" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
-        <img src={preview.url} alt={preview.filename} />
+      <div class="modal" role="dialog" aria-modal="true" aria-label="文件预览" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
+        {#if isImageFile(preview.format)}
+          <img src={preview.url} alt={preview.filename} />
+        {:else}
+          <div class="modal-file-icon">
+            <svelte:component this={getFileIcon(preview.format)} size={64} color="#6b7280" />
+          </div>
+        {/if}
         <div class="modal-filename">{preview.filename}</div>
       </div>
     </button>

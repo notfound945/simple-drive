@@ -10,11 +10,11 @@ export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const sortParam = url.searchParams.get('sort') as SortOption || 'time-desc';
 		const files = await readdir(uploadsDir);
-		const imageFiles = files.filter((name) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name));
+		const allFiles = files; // Accept all file types
 		
 		// Get file stats
-		const imagesWithStats = await Promise.all(
-			imageFiles.map(async (name) => {
+		const filesWithStats = await Promise.all(
+			allFiles.map(async (name) => {
 				const filePath = join(uploadsDir, name);
 				const stats = await stat(filePath);
 				const ext = name.split('.').pop()?.toLowerCase() || '';
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		);
 		
 		// Sort based on parameter
-		imagesWithStats.sort((a, b) => {
+		filesWithStats.sort((a, b) => {
 			switch (sortParam) {
 				case 'time-desc':
 					return b.mtime - a.mtime; // newest first
@@ -49,7 +49,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		
 		return new Response(
 			JSON.stringify(
-				imagesWithStats.map(({ filename, url, size, format, uploadTime }) => ({ 
+				filesWithStats.map(({ filename, url, size, format, uploadTime }) => ({ 
 					filename, 
 					url, 
 					size, 

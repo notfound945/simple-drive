@@ -2,6 +2,7 @@ node_modules
 .svelte-kit
 build
 uploads
+logs
 node_modules
 
 # Output

@@ -149,7 +149,7 @@
       <div class="header-title">局域网图片上传</div>
       <section class="toolbar">
     <input id="file-input" class="file-input" type="file" accept="image/*" multiple on:change={onFileChange} />
-    <label class="btn btn-outline" for="file-input" aria-label="选择图片">
+        <label class="btn btn-primary" for="file-input" aria-label="选择图片">
       <ImageIcon size={16} />
       选择图片
     </label>

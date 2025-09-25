@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -7,15 +7,27 @@ const uploadsDir = join(process.cwd(), 'uploads');
 export const GET: RequestHandler = async () => {
 	try {
 		const files = await readdir(uploadsDir);
-		const images = files
-			.filter((name) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name))
-			.sort((a, b) => (a > b ? -1 : 1));
+		const imageFiles = files.filter((name) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name));
+		
+		// Get file stats and sort by modification time (upload time) descending
+		const imagesWithStats = await Promise.all(
+			imageFiles.map(async (name) => {
+				const filePath = join(uploadsDir, name);
+				const stats = await stat(filePath);
+				return {
+					filename: name,
+					url: `/uploads/${encodeURIComponent(name)}`,
+					mtime: stats.mtime.getTime()
+				};
+			})
+		);
+		
+		// Sort by upload time (mtime) descending - newest first
+		imagesWithStats.sort((a, b) => b.mtime - a.mtime);
+		
 		return new Response(
 			JSON.stringify(
-				images.map((name) => ({
-					filename: name,
-					url: `/uploads/${encodeURIComponent(name)}`
-				}))
+				imagesWithStats.map(({ filename, url }) => ({ filename, url }))
 			),
 			{ status: 200, headers: { 'content-type': 'application/json' } }
 		);

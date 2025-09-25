@@ -3,8 +3,8 @@
   import UploadIcon from '$lib/icons/Upload.svelte';
   import RefreshIcon from '$lib/icons/RefreshCw.svelte';
   import ImageIcon from '$lib/icons/Image.svelte';
-  import EyeIcon from '$lib/icons/Eye.svelte';
   import TrashIcon from '$lib/icons/Trash.svelte';
+  import DownloadIcon from '$lib/icons/Download.svelte';
   import './+page.css';
 
   let selectedFiles: File[] = [];
@@ -15,17 +15,46 @@
   let preview: { filename: string; url: string } | null = null;
   let errorMessage = '';
 
+  function saveMyUploads() {
+    try {
+      localStorage.setItem('myUploads', JSON.stringify(Array.from(myUploads)));
+    } catch {}
+  }
+
+  function loadMyUploads() {
+    try {
+      const raw = localStorage.getItem('myUploads');
+      if (raw) {
+        const list: string[] = JSON.parse(raw);
+        myUploads = new Set(list);
+      }
+    } catch {}
+  }
+
   async function fetchImages() {
     try {
       const res = await fetch('/api/images');
       if (!res.ok) throw new Error('加载图片列表失败');
       images = await res.json();
+      // prune removed files from myUploads
+      const existing = new Set(images.map((i) => i.filename));
+      let changed = false;
+      for (const name of Array.from(myUploads)) {
+        if (!existing.has(name)) {
+          myUploads.delete(name);
+          changed = true;
+        }
+      }
+      if (changed) saveMyUploads();
     } catch (err) {
       errorMessage = (err as Error).message;
     }
   }
 
-  onMount(fetchImages);
+  onMount(() => {
+    loadMyUploads();
+    fetchImages();
+  });
 
   function onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -48,6 +77,7 @@
       try {
         const uploaded: { filename: string; url: string }[] = await res.json();
         for (const it of uploaded) myUploads.add(it.filename);
+        saveMyUploads();
       } catch {}
       selectedFiles = [];
       await fetchImages();
@@ -63,6 +93,8 @@
       if (!confirm('确认删除该图片吗？')) return;
       const res = await fetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' });
       if (!res.ok && res.status !== 204) throw new Error('删除失败');
+      myUploads.delete(filename);
+      saveMyUploads();
       await fetchImages();
     } catch (err) {
       errorMessage = (err as Error).message;
@@ -72,6 +104,17 @@
   $: visibleImages = activeTab === 'mine' ? images.filter((i) => myUploads.has(i.filename)) : images;
   function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') preview = null;
+  }
+
+  function downloadImage(url: string, filename: string) {
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {}
   }
 </script>
 
@@ -117,10 +160,10 @@
             </button>
             <div class="filename">{img.filename}</div>
             <div class="actions btn-group" role="group" aria-label="图片操作">
-              <button type="button" class="btn-icon" on:click={() => (preview = img)} aria-label="查看图片">
-                <EyeIcon size={14} /> 查看
+              <button type="button" class="btn-icon" on:click={() => downloadImage(img.url, img.filename)} aria-label="下载图片">
+                <DownloadIcon size={14} /> 下载
               </button>
-              <button type="button" class="btn-icon btn-danger badged" on:click={() => deleteImage(img.filename)} aria-label="删除图片">
+              <button type="button" class="btn-icon btn-danger" on:click={() => deleteImage(img.filename)} aria-label="删除图片">
                 <TrashIcon size={14} /> 删除
               </button>
             </div>

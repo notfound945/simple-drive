@@ -16,6 +16,12 @@
   let toasts: { id: number; type: 'success' | 'error'; text: string }[] = [];
   let sortBy: 'time-desc' | 'time-asc' | 'name' | 'size-desc' | 'size-asc' = 'time-desc';
   let layout: 'grid' | 'list' = 'grid';
+  let confirmModal: { show: boolean; title: string; message: string; onConfirm: () => void } = {
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  };
 
   function saveMyUploads() {
     try {
@@ -105,17 +111,35 @@
     }
   }
 
+  function showConfirm(title: string, message: string, onConfirm: () => void) {
+    confirmModal = { show: true, title, message, onConfirm };
+  }
+
+  function hideConfirm() {
+    confirmModal.show = false;
+  }
+
+  function handleConfirm() {
+    confirmModal.onConfirm();
+    hideConfirm();
+  }
+
   async function deleteImage(filename: string) {
-    try {
-      if (!confirm('确认删除该图片吗？')) return;
-      const res = await fetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' });
-      if (!res.ok && res.status !== 204) throw new Error('删除失败');
-      myUploads.delete(filename);
-      saveMyUploads();
-      await fetchImages();
-    } catch (err) {
-      errorMessage = (err as Error).message;
-    }
+    showConfirm(
+      '确认删除',
+      `确定要删除图片 "${filename}" 吗？此操作不可撤销。`,
+      async () => {
+        try {
+          const res = await fetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+          if (!res.ok && res.status !== 204) throw new Error('删除失败');
+          myUploads.delete(filename);
+          saveMyUploads();
+          await fetchImages();
+        } catch (err) {
+          errorMessage = (err as Error).message;
+        }
+      }
+    );
   }
 
   $: visibleImages = activeTab === 'mine' ? images.filter((i) => myUploads.has(i.filename)) : images;
@@ -125,7 +149,13 @@
     fetchImages();
   }
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') preview = null;
+    if (e.key === 'Escape') {
+      if (confirmModal.show) {
+        hideConfirm();
+      } else {
+        preview = null;
+      }
+    }
   }
 
   function downloadImage(url: string, filename: string) {
@@ -340,4 +370,26 @@
       <div class="toast {t.type}">{t.text}</div>
     {/each}
   </div>
+
+  <!-- Confirm Modal -->
+  {#if confirmModal.show}
+    <div class="confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div class="confirm-modal">
+        <div class="confirm-header">
+          <h3 id="confirm-title" class="confirm-title">{confirmModal.title}</h3>
+        </div>
+        <div class="confirm-body">
+          <p class="confirm-message">{confirmModal.message}</p>
+        </div>
+        <div class="confirm-footer">
+          <button type="button" class="btn btn-outline" on:click={hideConfirm}>
+            取消
+          </button>
+          <button type="button" class="btn btn-danger" on:click={handleConfirm}>
+            确认删除
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </main>

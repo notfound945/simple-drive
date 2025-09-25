@@ -7,6 +7,10 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"start": "node build/index.js",
+		"start:pm2": "pm2 start ecosystem.config.js",
+		"stop:pm2": "pm2 stop simple-drive",
+		"restart:pm2": "pm2 restart simple-drive",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"

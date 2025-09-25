@@ -40,7 +40,7 @@ function generateDestinationName(originalName: string): string {
 	return `${base}_${timestamp}${ext}`;
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, url }) => {
 	await ensureUploadsDirExists();
 
 	const form = await request.formData();
@@ -75,6 +75,17 @@ export const POST: RequestHandler = async ({ request }) => {
 	return new Response(JSON.stringify(results), {
 		status: 201,
 		headers: { 'content-type': 'application/json' }
+	});
+};
+
+export const OPTIONS: RequestHandler = async () => {
+	return new Response(null, {
+		status: 200,
+		headers: {
+			'Access-Control-Allow-Origin': '*',
+			'Access-Control-Allow-Methods': 'POST, OPTIONS',
+			'Access-Control-Allow-Headers': 'Content-Type'
+		}
 	});
 };
 

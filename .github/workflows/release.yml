@@ -135,3 +135,5 @@ jobs:
           - 支持的操作系统: Windows, Linux, macOS
         draft: false
         prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

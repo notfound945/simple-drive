@@ -1,0 +1,139 @@
+name: Build and Release
+
+# 当推送tag时触发
+on:
+  push:
+    tags:
+      - 'v*'  # 匹配所有以v开头的标签
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 📦 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📥 安装依赖
+      run: |
+        echo "📦 安装项目依赖..."
+        npm ci --only=production
+        
+    - name: 🔨 构建应用
+      run: |
+        echo "🔨 开始构建应用..."
+        npm run build
+        echo "✅ 构建完成"
+        
+    - name: 📁 准备发布文件
+      run: |
+        echo "📁 准备发布文件..."
+        
+        # 创建发布目录
+        mkdir -p release
+        
+        # 复制构建文件
+        cp -r build/* release/
+        
+        # 复制必要文件
+        cp package.json release/
+        cp package-lock.json release/
+        cp README.md release/
+        cp start.sh release/
+        cp start.bat release/
+        cp ecosystem.config.js release/
+        cp nginx.conf release/
+        cp Dockerfile release/
+        cp docker-compose.yml release/
+        
+        # 创建必要目录
+        mkdir -p release/uploads
+        mkdir -p release/logs
+        
+        # 设置脚本执行权限
+        chmod +x release/start.sh
+        
+        echo "📊 发布文件列表:"
+        ls -la release/
+        
+    - name: 📦 创建发布包
+      run: |
+        echo "📦 创建发布包..."
+        cd release
+        zip -r ../simple-drive-${{ github.ref_name }}.zip .
+        cd ..
+        
+        echo "📊 发布包信息:"
+        ls -lh simple-drive-${{ github.ref_name }}.zip
+        
+    - name: 🏷️ 创建 GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: simple-drive-${{ github.ref_name }}.zip
+        name: Simple Drive ${{ github.ref_name }}
+        body: |
+          ## 🎉 Simple Drive ${{ github.ref_name }}
+          
+          ### 📦 发布内容
+          - ✅ 构建好的应用程序
+          - ✅ Windows 启动脚本 (start.bat)
+          - ✅ Linux/macOS 启动脚本 (start.sh)
+          - ✅ PM2 配置文件
+          - ✅ Nginx 配置
+          - ✅ Docker 相关文件
+          - ✅ 使用说明文档
+          
+          ### 🚀 快速开始
+          
+          **Windows:**
+          ```cmd
+          start.bat
+          ```
+          
+          **Linux/macOS:**
+          ```bash
+          chmod +x start.sh
+          ./start.sh
+          ```
+          
+          **使用 PM2:**
+          ```bash
+          npm install -g pm2
+          pm2 start ecosystem.config.js
+          ```
+          
+          **使用 Docker:**
+          ```bash
+          docker-compose up -d
+          ```
+          
+          ### 📁 文件结构
+          ```
+          simple-drive-${{ github.ref_name }}/
+          ├── build/              # 构建后的应用文件
+          ├── uploads/            # 上传文件目录
+          ├── logs/               # 日志目录
+          ├── start.sh            # Linux/macOS 启动脚本
+          ├── start.bat           # Windows 启动脚本
+          ├── package.json        # 项目配置
+          ├── ecosystem.config.js # PM2 配置
+          ├── nginx.conf          # Nginx 配置
+          ├── Dockerfile          # Docker 配置
+          ├── docker-compose.yml  # Docker Compose 配置
+          └── README.md           # 使用说明
+          ```
+          
+          ### 🔧 系统要求
+          - Node.js 18+ 
+          - npm 或 yarn
+          - 支持的操作系统: Windows, Linux, macOS
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

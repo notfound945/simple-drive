@@ -23,6 +23,7 @@
   let toasts: { id: number; type: 'success' | 'error'; text: string }[] = [];
   let sortBy: 'time-desc' | 'time-asc' | 'name' | 'size-desc' | 'size-asc' = 'time-desc';
   let layout: 'grid' | 'list' = 'grid';
+  let isDragOver = false;
   let confirmModal: { show: boolean; title: string; message: string; onConfirm: () => void } = {
     show: false,
     title: '',
@@ -79,13 +80,69 @@
     return () => es.close();
   });
 
+  // 文件大小验证函数
+  function validateFileSize(files: File[]): boolean {
+    const maxSize = 4 * 1024 * 1024 * 1024; // 4GB in bytes
+    const oversizedFiles = files.filter(file => file.size > maxSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(f => f.name).join(', ');
+      errorMessage = `文件大小超过限制: ${fileNames}。最大支持 4GB。`;
+      pushToast('error', errorMessage);
+      return false;
+    }
+    return true;
+  }
+
   async function onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
-    selectedFiles = input.files ? Array.from(input.files) : [];
+    const files = input.files ? Array.from(input.files) : [];
+    
+    if (!validateFileSize(files)) {
+      input.value = '';
+      return;
+    }
+    
+    selectedFiles = files;
     if (selectedFiles.length > 0) {
       await uploadFiles();
       // reset input to allow re-selecting the same files again
       input.value = '';
+    }
+  }
+
+  // 拖拽上传处理
+  function onDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = true;
+  }
+
+  function onDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = false;
+  }
+
+  async function onDrop(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = false;
+    
+    const files = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : [];
+    
+    if (!validateFileSize(files)) {
+      return;
+    }
+    
+    selectedFiles = files;
+    if (selectedFiles.length > 0) {
+      await uploadFiles();
     }
   }
 
@@ -254,7 +311,8 @@
 <svelte:window on:keydown={onKeydown} />
 
 <main class="page">
-  <header class="header">
+  <div class="page-content">
+    <header class="header">
     <div class="header-inner">
       <div class="header-content">
         <div class="header-title">Simple Drive</div>
@@ -460,21 +518,29 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-content">
-        <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
-        <label class="btn btn-primary" for="file-input" aria-label="选择文件">
-          <ImageIcon size={16} />
-          选择文件
-        </label>
-        {#if errorMessage}
-          <span class="error">{errorMessage}</span>
-        {/if}
+    <div 
+      class="upload-area {isDragOver ? 'dragover' : ''}"
+      role="button"
+      tabindex="0"
+      on:dragover={onDragOver}
+      on:dragenter={onDragEnter}
+      on:dragleave={onDragLeave}
+      on:drop={onDrop}
+      on:click={() => document.getElementById('file-input')?.click()}
+      on:keydown={(e) => e.key === 'Enter' && document.getElementById('file-input')?.click()}
+    >
+      <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
+      <div class="upload-content">
+        <FileIcon size={48} color="#3b82f6" />
+        <div class="upload-text">
+          <div class="upload-title">拖拽文件到此处上传</div>
+          <div class="upload-subtitle">或点击选择文件 (最大 4GB)</div>
+        </div>
       </div>
-      <div class="footer-info">
-        <div class="footer-brand">Version 1.0.0</div>
-        <div class="footer-slogan">Share Everything, Share Simply.</div>
-      </div>
+      {#if errorMessage}
+        <div class="upload-error">{errorMessage}</div>
+      {/if}
     </div>
   </footer>
+  </div>
 </main>

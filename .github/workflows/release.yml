@@ -28,7 +28,7 @@ jobs:
     - name: 🔨 构建应用
       run: |
         echo "🔨 开始构建应用..."
-        npm run build
+        BODY_SIZE_LIMIT=4G npm run build
         echo "✅ 构建完成"
         
     - name: 📁 准备发布文件

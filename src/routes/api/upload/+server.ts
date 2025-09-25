@@ -16,8 +16,20 @@ async function ensureUploadsDirExists(): Promise<void> {
 }
 
 function sanitizeFilename(originalName: string): string {
-	const name = originalName.replace(/[^a-zA-Z0-9_.-]/g, '_');
-	return name.slice(0, 100);
+	// Preserve Unicode (including Chinese) while removing unsafe characters
+	// 1) Normalize to NFC for consistent filesystem storage
+	// 2) Remove path separators, wildcards, quotes, angle brackets, pipes (Windows-unsafe too)
+	// 3) Remove control chars
+	// 4) Collapse whitespace and trim
+	const normalized = originalName.normalize('NFC');
+	const withoutUnsafe = normalized
+		.replace(/[\\/:*?"<>|]/g, '_')
+		.replace(/[\u0000-\u001F\u007F]/g, '_');
+	const collapsed = withoutUnsafe.replace(/\s+/g, ' ').trim();
+	// Limit length for safety
+	const limited = collapsed.slice(0, 100);
+	// Avoid empty or dot-only names
+	return limited === '' || /^\.+$/.test(limited) ? '文件' : limited;
 }
 
 function generateDestinationName(originalName: string): string {

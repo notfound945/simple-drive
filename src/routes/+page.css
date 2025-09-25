@@ -527,10 +527,11 @@ main.page {
   justify-content: center;
 }
 
+/* 中等屏幕 - 隐藏时间列 */
 @media (max-width: 768px) {
   .list-header,
   .list-row {
-    grid-template-columns: 50px 1fr 60px 80px 120px 100px;
+    grid-template-columns: 50px 1fr 60px 80px 100px;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
   }
@@ -541,7 +542,92 @@ main.page {
   }
   
   .list-col-time {
+    display: none;
+  }
+  
+  .list-header .list-col-time {
+    display: none;
+  }
+}
+
+/* 小屏幕 - 只显示预览、名称和操作 */
+@media (max-width: 480px) {
+  .list-header,
+  .list-row {
+    grid-template-columns: 40px 1fr 80px;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .list-thumb-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .list-file-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .list-col-format,
+  .list-col-size,
+  .list-col-time {
+    display: none;
+  }
+  
+  .list-header .list-col-format,
+  .list-header .list-col-size,
+  .list-header .list-col-time {
+    display: none;
+  }
+  
+  .list-col-actions .btn-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .list-col-actions .btn-icon {
+    padding: 0.25rem 0.5rem;
     font-size: 12px;
+    border-radius: 0.25rem;
+  }
+  
+  .list-col-actions .btn-group .btn-icon:first-child,
+  .list-col-actions .btn-group .btn-icon:last-child {
+    border-radius: 0.25rem;
+  }
+  
+  .list-col-actions .btn-group .btn-icon + .btn-icon {
+    margin-left: 0;
+  }
+}
+
+/* 超小屏幕 - 进一步优化 */
+@media (max-width: 360px) {
+  .list-header,
+  .list-row {
+    grid-template-columns: 32px 1fr 60px;
+    gap: 0.25rem;
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .list-thumb-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .list-file-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .list-filename {
+    font-size: 12px;
+  }
+  
+  .list-col-actions .btn-icon {
+    padding: 0.2rem 0.4rem;
+    font-size: 11px;
   }
 }
 

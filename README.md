@@ -1,6 +1,6 @@
 # Simple Drive
 
-一个简洁优雅的局域网文件共享系统，基于 SvelteKit 构建。
+一个简洁优雅的文件共享系统，基于 SvelteKit 构建。
 
 ## ✨ 功能特性
 

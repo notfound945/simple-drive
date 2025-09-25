@@ -256,17 +256,10 @@
 <main class="page">
   <header class="header">
     <div class="header-inner">
-      <div class="header-title">局域网文件上传</div>
-      <section class="toolbar">
-        <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
-        <label class="btn btn-primary" for="file-input" aria-label="选择文件">
-      <ImageIcon size={16} />
-      选择文件
-    </label>
-    {#if errorMessage}
-      <span class="error">{errorMessage}</span>
-    {/if}
-      </section>
+      <div class="header-content">
+        <div class="header-title">Simple Drive</div>
+        <div class="header-slogan">Share Simple, Simply Share</div>
+      </div>
     </div>
   </header>
 
@@ -464,4 +457,24 @@
       </div>
     </div>
   {/if}
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-content">
+        <input id="file-input" class="file-input" type="file" multiple on:change={onFileChange} />
+        <label class="btn btn-primary" for="file-input" aria-label="选择文件">
+          <ImageIcon size={16} />
+          选择文件
+        </label>
+        {#if errorMessage}
+          <span class="error">{errorMessage}</span>
+        {/if}
+      </div>
+      <div class="footer-info">
+        <div class="footer-brand">Version 1.0.0</div>
+        <div class="footer-slogan">Share Everything, Share Simply.</div>
+      </div>
+    </div>
+  </footer>
 </main>

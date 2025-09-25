@@ -1,5 +1,5 @@
 {
-	"name": "lan-file-share",
+	"name": "simple-drive",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",

@@ -11,3 +11,6 @@ declare global {
 }
 
 export {};
+
+// Ambient module declaration for mime-types to satisfy TypeScript
+declare module 'mime-types';

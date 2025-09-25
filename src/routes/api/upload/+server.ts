@@ -1,6 +1,7 @@
 import { writeFile, mkdir, stat } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import type { RequestHandler } from '@sveltejs/kit';
+import { eventBus } from '$lib/server/events';
 
 const uploadsDir = join(process.cwd(), 'uploads');
 
@@ -68,10 +69,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		results.push({ filename: destName, url: `/uploads/${encodeURIComponent(destName)}` });
 	}
 
+	// notify listeners
+	eventBus.emit('images');
+
 	return new Response(JSON.stringify(results), {
 		status: 201,
 		headers: { 'content-type': 'application/json' }
 	});
 };
+
 
 

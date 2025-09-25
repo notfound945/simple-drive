@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import UploadIcon from '$lib/icons/Upload.svelte';
-  import RefreshIcon from '$lib/icons/RefreshCw.svelte';
   import ImageIcon from '$lib/icons/Image.svelte';
   import TrashIcon from '$lib/icons/Trash.svelte';
   import DownloadIcon from '$lib/icons/Download.svelte';
@@ -55,6 +54,14 @@
   onMount(() => {
     loadMyUploads();
     fetchImages();
+    // listen for server-sent events and auto-refresh
+    const es = new EventSource('/api/events');
+    es.onmessage = (ev) => {
+      if (ev.data === 'images') {
+        fetchImages();
+      }
+    };
+    return () => es.close();
   });
 
   async function onFileChange(e: Event) {
@@ -146,10 +153,6 @@
       <ImageIcon size={16} />
       选择图片
     </label>
-    <button class="btn" on:click={fetchImages} aria-label="刷新图片列表">
-      <RefreshIcon size={16} />
-      刷新
-    </button>
     {#if errorMessage}
       <span class="error">{errorMessage}</span>
     {/if}

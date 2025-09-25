@@ -1,0 +1,24 @@
+<script lang="ts">
+  export let size: number = 16;
+  export let stroke: number = 2;
+  export let color: string = 'currentColor';
+</script>
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke={color}
+  stroke-width={stroke}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+  <polyline points="7 10 12 5 17 10" />
+  <line x1="12" y1="5" x2="12" y2="20" />
+</svg>
+
+

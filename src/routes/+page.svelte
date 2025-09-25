@@ -3,11 +3,16 @@
   import UploadIcon from '$lib/icons/Upload.svelte';
   import RefreshIcon from '$lib/icons/RefreshCw.svelte';
   import ImageIcon from '$lib/icons/Image.svelte';
+  import EyeIcon from '$lib/icons/Eye.svelte';
+  import TrashIcon from '$lib/icons/Trash.svelte';
   import './+page.css';
 
   let selectedFiles: File[] = [];
   let uploading = false;
   let images: { filename: string; url: string }[] = [];
+  let myUploads = new Set<string>();
+  let activeTab: 'mine' | 'all' = 'all';
+  let preview: { filename: string; url: string } | null = null;
   let errorMessage = '';
 
   async function fetchImages() {
@@ -39,6 +44,11 @@
         const text = await res.text();
         throw new Error(text || '上传失败');
       }
+      // record uploaded names as "mine"
+      try {
+        const uploaded: { filename: string; url: string }[] = await res.json();
+        for (const it of uploaded) myUploads.add(it.filename);
+      } catch {}
       selectedFiles = [];
       await fetchImages();
     } catch (err) {
@@ -47,7 +57,25 @@
       uploading = false;
     }
   }
+
+  async function deleteImage(filename: string) {
+    try {
+      if (!confirm('确认删除该图片吗？')) return;
+      const res = await fetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) throw new Error('删除失败');
+      await fetchImages();
+    } catch (err) {
+      errorMessage = (err as Error).message;
+    }
+  }
+
+  $: visibleImages = activeTab === 'mine' ? images.filter((i) => myUploads.has(i.filename)) : images;
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') preview = null;
+  }
 </script>
+
+<svelte:window on:keydown={onKeydown} />
 
 <main class="page">
   <h1>局域网图片上传</h1>
@@ -72,17 +100,46 @@
 
   <section>
     <h2>图片库</h2>
-    {#if images.length === 0}
+    <div class="tabs">
+      <button class="tab {activeTab === 'all' ? 'active' : ''}" on:click={() => (activeTab = 'all')}>所有上传</button>
+      <button class="tab {activeTab === 'mine' ? 'active' : ''}" on:click={() => (activeTab = 'mine')}>本机上传</button>
+    </div>
+    {#if visibleImages.length === 0}
       <p>暂无图片</p>
     {:else}
       <div class="grid">
-        {#each images as img}
-          <a href={img.url} target="_blank" rel="noreferrer" class="card">
-            <img src={img.url} alt={img.filename} class="thumb" />
+        {#each visibleImages as img}
+          <div class="card">
+            <button type="button" class="thumb-btn" on:click={() => (preview = img)} aria-label="预览图片">
+              <div class="thumb-wrap">
+                <img src={img.url} alt={img.filename} class="thumb" />
+              </div>
+            </button>
             <div class="filename">{img.filename}</div>
-          </a>
+            <div class="actions btn-group" role="group" aria-label="图片操作">
+              <button type="button" class="btn-icon" on:click={() => (preview = img)} aria-label="查看图片">
+                <EyeIcon size={14} /> 查看
+              </button>
+              <button type="button" class="btn-icon btn-danger badged" on:click={() => deleteImage(img.filename)} aria-label="删除图片">
+                <TrashIcon size={14} /> 删除
+              </button>
+            </div>
+          </div>
         {/each}
       </div>
     {/if}
   </section>
+
+  {#if preview}
+    <button
+      type="button"
+      class="modal-backdrop"
+      on:click={() => (preview = null)}
+    >
+      <div class="modal" role="dialog" aria-modal="true" aria-label="图片预览" tabindex="-1" on:click|stopPropagation on:keydown|stopPropagation>
+        <img src={preview.url} alt={preview.filename} />
+        <div class="modal-filename">{preview.filename}</div>
+      </div>
+    </button>
+  {/if}
 </main>

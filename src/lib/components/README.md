@@ -53,7 +53,7 @@
 
 ### PreviewModal.svelte
 - **功能**: 文件预览模态框组件
-- **包含**: 图片预览、文件图标显示
+- **包含**: 图片预览、文件图标显示，层级高于 footer
 - **Props**:
   - `preview`: 预览文件信息
   - `onClose`: 关闭事件处理函数
@@ -68,9 +68,45 @@
 
 ### ToastContainer.svelte
 - **功能**: 提示消息容器组件
-- **包含**: 成功/错误提示消息显示
+- **包含**: 成功/错误提示消息显示，顶部居中展示
 - **Props**:
   - `toasts`: 提示消息数组
+
+### ButtonGroup.svelte
+- **功能**: 通用按钮组组件
+- **包含**: 支持排序和布局两种变体的按钮组
+- **Props**:
+  - `buttons`: 按钮配置数组
+  - `onButtonClick`: 按钮点击事件处理函数
+  - `variant`: 按钮组变体 ('sort' | 'layout')
+
+### SortGroup.svelte
+- **功能**: 排序按钮组组件
+- **包含**: 时间、文件名、大小排序按钮
+- **Props**:
+  - `sortBy`: 当前排序方式
+  - `onSortChange`: 排序变更事件处理函数
+
+### LayoutGroup.svelte
+- **功能**: 布局切换按钮组组件
+- **包含**: 网格和列表布局切换按钮
+- **Props**:
+  - `layout`: 当前布局模式
+  - `onLayoutChange`: 布局变更事件处理函数
+
+### Tabs.svelte
+- **功能**: 通用标签页组件
+- **包含**: 可配置的标签页按钮组
+- **Props**:
+  - `tabs`: 标签页配置数组
+  - `onTabChange`: 标签页切换事件处理函数
+
+### TabGroup.svelte
+- **功能**: 文件标签页组件
+- **包含**: 所有上传和本机上传标签页
+- **Props**:
+  - `activeTab`: 当前激活的标签页
+  - `onTabChange`: 标签页切换事件处理函数
 
 ## 使用方式
 
@@ -88,8 +124,22 @@
 ### 子组件使用
 ```svelte
 <script>
-  import { FileCard, FileList, PreviewModal, ConfirmModal, ToastContainer } from '$lib/components';
+  import { 
+    FileCard, FileList, PreviewModal, ConfirmModal, ToastContainer,
+    SortGroup, LayoutGroup, ButtonGroup, TabGroup, Tabs 
+  } from '$lib/components';
 </script>
+
+<!-- 标签页控制 -->
+<TabGroup {activeTab} {onTabChange} />
+
+<!-- 排序和布局控制 -->
+<div class="sort-controls">
+  <SortGroup {sortBy} {onSortChange} />
+  <div class="layout-toggle">
+    <LayoutGroup {layout} {onLayoutChange} />
+  </div>
+</div>
 
 <!-- 网格布局 -->
 <div class="grid">
@@ -105,6 +155,26 @@
 <PreviewModal {preview} onClose={() => preview = null} />
 <ConfirmModal {confirmModal} onHide={hideConfirm} onConfirm={handleConfirm} />
 <ToastContainer {toasts} />
+
+<!-- 自定义按钮组 -->
+<ButtonGroup 
+  buttons={[
+    { key: 'option1', label: '选项1', active: selected === 'option1' },
+    { key: 'option2', label: '选项2', active: selected === 'option2' }
+  ]} 
+  onButtonClick={(key) => selected = key}
+  variant="sort"
+/>
+
+<!-- 自定义标签页 -->
+<Tabs 
+  tabs={[
+    { key: 'tab1', label: '标签页1', active: currentTab === 'tab1' },
+    { key: 'tab2', label: '标签页2', active: currentTab === 'tab2' },
+    { key: 'tab3', label: '标签页3', active: currentTab === 'tab3' }
+  ]} 
+  onTabChange={(key) => currentTab = key}
+/>
 ```
 
 ## 工具函数

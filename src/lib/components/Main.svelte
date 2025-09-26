@@ -79,6 +79,13 @@
     margin-left: auto;
   }
 
+  /* 响应式隐藏排序按钮组 */
+  @media (max-width: 460px) {
+    .sort-controls :global(.button-group.sort-group) {
+      display: none;
+    }
+  }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

@@ -25,7 +25,18 @@ export const GET: RequestHandler = async ({ url }) => {
 		const sortParam = url.searchParams.get('sort') as SortOption || 'time-desc';
 		const uploadsDir = await getUploadsDir();
 		const files = await readdir(uploadsDir);
-		const allFiles = files; // Accept all file types
+		// 忽略内部或系统文件
+		const IGNORE_FILES = new Set(['.clipboard.json', '.DS_Store', 'Thumbs.db', '.gitkeep']);
+		const IGNORE_PATTERNS = [
+			/^~\$.+/i, // Office 临时文件
+			/.+\.(tmp|part|partial|crdownload)$/i // 常见临时/下载中后缀
+		];
+		const shouldIgnore = (name: string) => {
+			if (IGNORE_FILES.has(name)) return true;
+			for (const re of IGNORE_PATTERNS) if (re.test(name)) return true;
+			return false;
+		};
+		const allFiles = files.filter((name) => !shouldIgnore(name));
 		
 		// Get file stats
 		const filesWithStats = await Promise.all(

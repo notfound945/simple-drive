@@ -40,8 +40,10 @@ jobs:
         
         # 复制构建文件
         cp -r build/* release/
-        
+
         # 复制必要文件
+        cp package.json release/
+        cp package-lock.json release/
         cp README.md release/
         cp start.sh release/
         cp start.bat release/
@@ -52,6 +54,11 @@ jobs:
         
         # 设置脚本执行权限
         chmod +x release/start.sh
+
+        # 在release目录安装生产依赖
+        cd release
+        npm install --only=production
+        cd ..
         
         echo "📊 发布文件列表:"
         ls -la release/

@@ -56,9 +56,7 @@ jobs:
         chmod +x release/start.sh
 
         # 在release目录安装生产依赖
-        cd release
-        npm install --only=production
-        cd ..
+        cd release && npm ci --omit dev && cd ..
         
         echo "📊 发布文件列表:"
         ls -la release/

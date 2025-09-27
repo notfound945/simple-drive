@@ -206,8 +206,8 @@
 
   async function deleteImage(filename: string) {
     showConfirm(
-      '确认删除',
-      `确定要删除图片 "${filename}" 吗？此操作不可撤销。`,
+      '确认删除文件',
+      `确定要删除 "${filename}" 文件吗？此操作不可撤销。`,
       async () => {
         try {
           const res = await fetch(`/api/delete?filename=${encodeURIComponent(filename)}`, { method: 'DELETE' });

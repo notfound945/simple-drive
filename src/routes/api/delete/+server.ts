@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { unlink } from 'fs/promises';
 import { join, dirname } from 'path';
+import { eventBus } from '$lib/server/events';
 
 // 获取项目根目录的uploads文件夹
 // 在开发环境中，process.cwd() 指向项目根目录
@@ -37,9 +38,12 @@ export async function DELETE({ request, url }) {
       // 删除文件
       await unlink(filePath);
       
+      // 通知所有客户端文件已删除
+      eventBus.emit('images');
+      
       // 返回成功响应
       return new Response(null, { status: 204 });
-    } catch (error) {
+    } catch (error: any) {
       // 文件不存在或其他错误
       if (error.code === 'ENOENT') {
         return json({ error: '文件不存在' }, { status: 404 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { formatDate } from '$lib/utils';
   type ClipboardItem = {
     id: string;
@@ -18,6 +19,56 @@
   let inputText = '';
   let editingId: string | null = null;
   let editingText = '';
+
+  // 基于 show 的响应式滚动锁，支持多模态计数，避免重复打开失效
+  let lockedByThis = false;
+  function lockScroll() {
+    const root = document.documentElement as HTMLElement & { dataset: Record<string, string | undefined> };
+    const current = Number(root.dataset.modalLockCount || '0');
+    if (current === 0) {
+      root.dataset.modalPrevOverflow = root.style.overflow || '';
+      root.style.overflow = 'hidden';
+    }
+    root.dataset.modalLockCount = String(current + 1);
+    lockedByThis = true;
+  }
+  function unlockScroll() {
+    const root = document.documentElement as HTMLElement & { dataset: Record<string, string | undefined> };
+    const now = Number(root.dataset.modalLockCount || '1');
+    const next = Math.max(0, now - 1);
+    if (next === 0) {
+      const prev = root.dataset.modalPrevOverflow || '';
+      root.style.overflow = prev;
+      delete root.dataset.modalPrevOverflow;
+      delete root.dataset.modalLockCount;
+    } else {
+      root.dataset.modalLockCount = String(next);
+    }
+    lockedByThis = false;
+  }
+
+  $: if (show) {
+    if (!lockedByThis && typeof document !== 'undefined') lockScroll();
+  } else {
+    if (lockedByThis && typeof document !== 'undefined') unlockScroll();
+  }
+
+  onDestroy(() => {
+    if (lockedByThis && typeof document !== 'undefined') unlockScroll();
+  });
+
+  function blockWheelAtBackdrop(e: WheelEvent) {
+    // 仅当滚动发生在背板空白区域时阻止默认，从而避免滚动穿透到底部内容
+    if (e.target === e.currentTarget) {
+      e.preventDefault();
+    }
+  }
+
+  function blockTouchAtBackdrop(e: TouchEvent) {
+    if (e.target === e.currentTarget) {
+      e.preventDefault();
+    }
+  }
 
   function startEdit(item: ClipboardItem) {
     editingId = item.id;
@@ -77,10 +128,18 @@
       pushToast('error', '复制失败');
     }
   }
+
+  // 锁定背景滚动：仅拦截在 backdrop 上的滚动事件，模态内部允许滚动
+  function handleBackdropWheel(e: WheelEvent) {
+    e.preventDefault();
+  }
+  function handleBackdropTouchMove(e: TouchEvent) {
+    e.preventDefault();
+  }
 </script>
 
 {#if show}
-  <div class="cb-backdrop" role="dialog" aria-modal="true" aria-labelledby="cb-title">
+  <div class="cb-backdrop" role="dialog" aria-modal="true" aria-labelledby="cb-title" on:wheel={blockWheelAtBackdrop} on:touchmove={blockTouchAtBackdrop}>
     <div class="cb-modal">
       <div class="cb-header">
         <h3 id="cb-title" class="cb-title">剪贴板</h3>

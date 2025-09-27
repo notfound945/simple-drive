@@ -27,7 +27,6 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 	const uploadsDir = await getUploadsDir();
 	const filePath = join(uploadsDir, filename);
-  console.log('filePath === | ===', filePath, uploadsDir);
 	try {
 		const s = await stat(filePath);
 		if (!s.isFile()) throw new Error('not file');

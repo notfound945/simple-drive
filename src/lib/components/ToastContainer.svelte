@@ -18,14 +18,15 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: 400px;
-    width: 100%;
+    max-width: min(90vw, 600px);
+    width: auto;
+    min-width: 200px;
     padding: 0 12px;
     box-sizing: border-box;
   }
 
   .toast {
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     font-size: 14px;
@@ -38,6 +39,9 @@
     hyphens: auto;
     text-align: left;
     white-space: normal;
+    width: fit-content;
+    max-width: 200px;
+    box-sizing: border-box;
   }
 
   .toast.success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formatDate } from '$lib/utils';
   type ClipboardItem = {
     id: string;
     text: string;
@@ -110,6 +111,7 @@
               {:else}
                 <div class="cb-content" role="button" tabindex="0" on:dblclick={() => startEdit(item)}>{item.text}</div>
                 <div class="cb-actions">
+                  <div class="cb-meta" title={item.createdAt}>{formatDate(item.createdAt)}</div>
                   <button class="btn-outline" on:click={() => copyToClipboard(item.text)}>复制</button>
                   <button class="btn-outline" on:click={() => startEdit(item)}>编辑</button>
                   <button class="btn-danger" on:click={() => deleteItem(item.id)}>删除</button>
@@ -175,7 +177,8 @@
   .cb-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; margin: 8px 0; background: #fff; }
   .cb-content { white-space: pre-wrap; word-break: break-word; color: #374151; }
   .cb-textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; font-size: 14px; }
-  .cb-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .cb-meta { margin-top: 6px; font-size: 12px; color: #6b7280; }
+  .cb-actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 8px; }
   .btn-primary { background: #2563eb; color: #fff; border: 1px solid #1d4ed8; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
   .btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
   .btn-danger { background: #ef4444; color: #fff; border: 1px solid #dc2626; border-radius: 8px; padding: 6px 12px; cursor: pointer; }

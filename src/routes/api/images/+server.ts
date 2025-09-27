@@ -1,37 +1,20 @@
-import { readdir, stat, access } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import type { RequestHandler } from '@sveltejs/kit';
 
-// 获取项目根目录的uploads文件夹
-// 在开发环境中，process.cwd() 指向项目根目录
-// 在生产环境中，process.cwd() 指向build目录，需要向上查找
+// 获取uploads文件夹路径
+// 开发环境：运行npm run start时，process.cwd()指向build目录，uploads在上级目录
+// 生产环境：运行node index.js时，process.cwd()指向项目根目录，uploads在同级目录
 const getUploadsDir = async () => {
   const cwd = process.cwd();
   
-  // 如果当前目录是build目录
+  // 如果当前目录是build目录（开发环境运行npm run start）
   if (cwd.endsWith('/build') || cwd.endsWith('\\build')) {
-    // 检查build目录下是否有uploads
-    const uploadsInBuild = join(cwd, 'uploads');
-    // 检查上级目录是否有uploads（开发环境情况）
-    const uploadsInParent = join(dirname(cwd), 'uploads');
-    
-    try {
-      // 优先检查build目录下的uploads
-      await access(uploadsInBuild);
-      return uploadsInBuild;
-    } catch {
-      try {
-        // 如果build目录下没有，检查上级目录
-        await access(uploadsInParent);
-        return uploadsInParent;
-      } catch {
-        // 如果都没有，默认返回上级目录（开发环境）
-        return uploadsInParent;
-      }
-    }
+    // 开发环境：build目录和uploads目录同级
+    return join(dirname(cwd), 'uploads');
   }
   
-  // 否则直接使用当前目录下的uploads
+  // 生产环境：uploads目录就在当前目录下
   return join(cwd, 'uploads');
 };
 

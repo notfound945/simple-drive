@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# Simple Drive 启动脚本
+# Simple Drive startup script
 
-echo "🚀 启动 Simple Drive..."
+echo "🚀 Starting Simple Drive..."
 
-# 创建必要的目录
+# Create necessary directories
 mkdir -p uploads
 
-# 设置环境变量
+# Set environment variables
 export NODE_ENV=production
 export PORT=${PORT:-3000}
 export BODY_SIZE_LIMIT=4G
 
-echo "🌐 启动服务器在端口 $PORT"
-echo "📁 上传目录: $(pwd)/uploads"
+echo "🌐 Starting server on port $PORT"
+echo "📁 Upload directory: $(pwd)/uploads"
 
-# 启动应用
+# Start application
 node index.js

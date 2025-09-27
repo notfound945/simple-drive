@@ -1,25 +1,25 @@
 @echo off
 chcp 65001 >nul
 
-REM Simple Drive GitHub 发布脚本
-REM 用于创建和推送 Git 标签，触发 GitHub Actions 自动构建和发布
+REM Simple Drive GitHub release script
+REM Used to create and push Git tags, trigger GitHub Actions for automatic build and release
 
 setlocal enabledelayedexpansion
 
-REM 检查参数
+REM Check arguments
 if "%~1"=="" (
-    echo Simple Drive GitHub 发布脚本
+    echo Simple Drive GitHub release script
     echo.
-    echo 用法:
-    echo   %0 ^<version^> [选项]
+    echo Usage:
+    echo   %0 ^<version^> [options]
     echo.
-    echo 参数:
-    echo   version     版本号 (例如: 1.0.0, v1.0.0)
+    echo Arguments:
+    echo   version     Version number (e.g.: 1.0.0, v1.0.0)
     echo.
-    echo 选项:
-    echo   -d, --dry-run  仅显示将要执行的操作，不实际执行
+    echo Options:
+    echo   -d, --dry-run  Only show operations to be performed, don't actually execute
     echo.
-    echo 示例:
+    echo Examples:
     echo   %0 1.0.0
     echo   %0 v1.0.0
     echo   %0 1.0.0 --dry-run
@@ -29,7 +29,7 @@ if "%~1"=="" (
 set VERSION=%~1
 set DRY_RUN=false
 
-REM 处理选项
+REM Process options
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="-d" (
@@ -47,87 +47,87 @@ goto :parse_args
 
 :args_done
 
-REM 确保版本号以 v 开头
+REM Ensure version number starts with v
 echo %VERSION% | findstr /r "^v" >nul
 if errorlevel 1 (
     set VERSION=v%VERSION%
 )
 
-echo 🚀 Simple Drive GitHub 发布脚本
-echo ================================
+echo 🚀 Simple Drive GitHub Release Script
+echo ====================================
 echo.
 
-REM 检查是否在 git 仓库中
+REM Check if in git repository
 git rev-parse --git-dir >nul 2>&1
 if errorlevel 1 (
-    echo ❌ 错误: 当前目录不是 Git 仓库
+    echo ❌ Error: Current directory is not a Git repository
     exit /b 1
 )
 
-REM 检查工作目录是否干净
+REM Check if working directory is clean
 git diff-index --quiet HEAD -- >nul 2>&1
 if errorlevel 1 (
-    echo ❌ 错误: 工作目录有未提交的更改
-    echo 请先提交或暂存所有更改
+    echo ❌ Error: Working directory has uncommitted changes
+    echo Please commit or stash all changes first
     exit /b 1
 )
 
-REM 检查标签是否已存在
+REM Check if tag already exists
 git rev-parse %VERSION% >nul 2>&1
 if not errorlevel 1 (
-    echo ❌ 错误: 标签 %VERSION% 已存在
+    echo ❌ Error: Tag %VERSION% already exists
     exit /b 1
 )
 
-REM 显示将要执行的操作
-echo 📋 将要执行的操作:
-echo   1. 创建标签: %VERSION%
-echo   2. 推送标签到远程仓库
-echo   3. 触发 GitHub Actions 构建和发布流程
+REM Show operations to be performed
+echo 📋 Operations to be performed:
+echo   1. Create tag: %VERSION%
+echo   2. Push tag to remote repository
+echo   3. Trigger GitHub Actions build and release process
 echo.
 
 if "%DRY_RUN%"=="true" (
-    echo 🔍 试运行模式 - 不会实际执行操作
+    echo 🔍 Dry run mode - operations will not be executed
     exit /b 0
 )
 
-REM 确认操作
-set /p CONFIRM="是否继续? (y/N): "
+REM Confirm operation
+set /p CONFIRM="Continue? (y/N): "
 if /i not "%CONFIRM%"=="y" (
-    echo ❌ 操作已取消
+    echo ❌ Operation cancelled
     exit /b 0
 )
 
 echo.
-echo 📦 创建标签 %VERSION%...
+echo 📦 Creating tag %VERSION%...
 git tag -a %VERSION% -m "Release %VERSION%"
 if errorlevel 1 (
-    echo ❌ 创建标签失败
+    echo ❌ Failed to create tag
     exit /b 1
 )
 
-echo 📤 推送标签到远程仓库...
+echo 📤 Pushing tag to remote repository...
 git push origin %VERSION%
 if errorlevel 1 (
-    echo ❌ 推送标签失败
+    echo ❌ Failed to push tag
     exit /b 1
 )
 
 echo.
-echo ✅ 标签 %VERSION% 已成功创建并推送
+echo ✅ Tag %VERSION% successfully created and pushed
 echo.
-echo 📋 接下来的步骤:
-echo   1. 访问 GitHub 仓库的 Actions 页面查看构建进度
-echo   2. 等待构建完成
-echo   3. 在 Releases 页面下载发布包
+echo 📋 Next steps:
+echo   1. Visit the GitHub repository Actions page to view build progress
+echo   2. Wait for build completion
+echo   3. Download release package from Releases page
 echo.
-echo 🔗 有用的链接:
+echo 🔗 Useful links:
 for /f "tokens=*" %%i in ('git config --get remote.origin.url') do set REPO_URL=%%i
 set REPO_URL=!REPO_URL:.git=!
-echo   - 仓库页面: !REPO_URL!
+echo   - Repository: !REPO_URL!
 echo   - Actions: !REPO_URL!/actions
 echo   - Releases: !REPO_URL!/releases
 echo.
-echo 🎉 发布流程已启动！
+echo 🎉 Release process started!
 
 pause

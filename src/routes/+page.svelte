@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Header, Footer, Main } from '$lib/components';
+  import { Header, Footer, Main, ClipboardModal } from '$lib/components';
   import './+page.css';
 
   let selectedFiles: File[] = [];
@@ -12,6 +12,8 @@
   let preview: { filename: string; url: string; format: string } | null = null;
   let errorMessage = '';
   let toasts: { id: number; type: 'success' | 'error'; text: string }[] = [];
+  let clipboardShow = false;
+  let clipboardItems: { id: string; text: string; createdAt: string; updatedAt: string }[] = [];
   let sortBy: 'time-desc' | 'time-asc' | 'name' | 'size-desc' | 'size-asc' = 'time-desc';
   let layout: 'grid' | 'list' = 'grid';
   let isDragOver = false;
@@ -66,10 +68,53 @@
     es.onmessage = (ev) => {
       if (ev.data === 'images') {
         fetchImages();
+      } else if (ev.data === 'clipboard') {
+        if (clipboardShow) {
+          fetchClipboard();
+        }
       }
     };
     return () => es.close();
   });
+
+  async function fetchClipboard() {
+    const res = await fetch('/api/clipboard');
+    if (!res.ok) throw new Error('加载剪贴板失败');
+    clipboardItems = await res.json();
+  }
+
+  async function openClipboard() {
+    try {
+      await fetchClipboard();
+      clipboardShow = true;
+    } catch (err) {
+      pushToast('error', (err as Error).message);
+    }
+  }
+
+  function closeClipboard() {
+    clipboardShow = false;
+  }
+
+  async function addClipboard(text: string) {
+    const res = await fetch('/api/clipboard', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ error: '添加失败' }))).error || '添加失败');
+    const item = await res.json();
+    clipboardItems = [item, ...clipboardItems];
+  }
+
+  async function updateClipboard(id: string, text: string) {
+    const res = await fetch(`/api/clipboard?id=${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ error: '更新失败' }))).error || '更新失败');
+    const item = await res.json();
+    clipboardItems = clipboardItems.map((it) => (it.id === id ? item : it));
+  }
+
+  async function deleteClipboard(id: string) {
+    const res = await fetch(`/api/clipboard?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.status !== 204) throw new Error((await res.json().catch(() => ({ error: '删除失败' }))).error || '删除失败');
+    clipboardItems = clipboardItems.filter((it) => it.id !== id);
+  }
 
   // 文件大小验证函数
   function validateFileSize(files: File[]): boolean {
@@ -290,7 +335,7 @@
 </script>
 
 <main class="page">
-  <Header />
+  <Header onOpenClipboard={openClipboard} />
   <Main 
     {images}
     {myUploads}
@@ -322,4 +367,14 @@
   {onDragEnter}
   {onDragLeave}
   {onDrop}
+/>
+
+<ClipboardModal 
+  show={clipboardShow}
+  items={clipboardItems}
+  onClose={closeClipboard}
+  onAdd={addClipboard}
+  onUpdate={updateClipboard}
+  onDelete={deleteClipboard}
+  {pushToast}
 />

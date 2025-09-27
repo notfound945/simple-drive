@@ -5,6 +5,7 @@ export const GET: RequestHandler = async () => {
   let closed = false;
   let iv: ReturnType<typeof setInterval> | undefined;
   let onImages: (() => void) | undefined;
+  let onClipboard: (() => void) | undefined;
 
   const stream = new ReadableStream({
     start(controller) {
@@ -18,7 +19,9 @@ export const GET: RequestHandler = async () => {
         }
       };
       onImages = () => send('images');
+      onClipboard = () => send('clipboard');
       eventBus.on('images', onImages);
+      eventBus.on('clipboard', onClipboard);
       // heartbeat to keep connection alive
       iv = setInterval(() => send('ping'), 25000);
     },
@@ -26,6 +29,7 @@ export const GET: RequestHandler = async () => {
       closed = true;
       if (iv) clearInterval(iv);
       if (onImages) eventBus.off('images', onImages);
+      if (onClipboard) eventBus.off('clipboard', onClipboard);
     }
   });
 

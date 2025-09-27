@@ -12,3 +12,4 @@ export { default as SortGroup } from './SortGroup.svelte';
 export { default as LayoutGroup } from './LayoutGroup.svelte';
 export { default as Tabs } from './Tabs.svelte';
 export { default as TabGroup } from './TabGroup.svelte';
+export { default as ClipboardModal } from './ClipboardModal.svelte';

@@ -4,4 +4,5 @@ export const eventBus = new EventEmitter();
 eventBus.setMaxListeners(1000);
 
 export type ImageEvent = 'images';
+export type AppEvent = 'images' | 'clipboard';
 

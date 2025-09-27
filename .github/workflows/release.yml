@@ -23,7 +23,7 @@ jobs:
     - name: 📥 安装依赖
       run: |
         echo "📦 安装项目依赖..."
-        npm ci
+        npm install
         
     - name: 🔨 构建应用
       run: |
@@ -42,8 +42,6 @@ jobs:
         cp -r build/* release/
         
         # 复制必要文件
-        cp package.json release/
-        cp package-lock.json release/
         cp README.md release/
         cp start.sh release/
         cp start.bat release/
@@ -51,10 +49,6 @@ jobs:
         cp nginx.conf release/
         cp Dockerfile release/
         cp docker-compose.yml release/
-        
-        # 创建必要目录
-        mkdir -p release/uploads
-        mkdir -p release/logs
         
         # 设置脚本执行权限
         chmod +x release/start.sh

@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		const destName = generateDestinationName(file.name);
 		const destPath = join(uploadsDir, destName);
 		await writeFile(destPath, buffer);
-		results.push({ filename: destName, url: `/uploads/${encodeURIComponent(destName)}` });
+		results.push({ filename: destName, url: `/files/${encodeURIComponent(destName)}` });
 	}
 
 	// notify listeners

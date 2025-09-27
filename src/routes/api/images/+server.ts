@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				const ext = name.split('.').pop()?.toLowerCase() || '';
 				return {
 					filename: name,
-					url: `/uploads/${encodeURIComponent(name)}`,
+					url: `/files/${encodeURIComponent(name)}`,
 					mtime: stats.mtime.getTime(),
 					size: stats.size,
 					format: ext,

@@ -1,14 +1,21 @@
 import { json } from '@sveltejs/kit';
 import { unlink } from 'fs/promises';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { join, dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// 获取项目根目录的uploads文件夹
+// 在开发环境中，process.cwd() 指向项目根目录
+// 在生产环境中，process.cwd() 指向build目录，需要向上查找
+const getUploadsDir = () => {
+  const cwd = process.cwd();
+  // 如果当前目录是build目录，则向上查找uploads
+  if (cwd.endsWith('/build') || cwd.endsWith('\\build')) {
+    return join(dirname(cwd), 'uploads');
+  }
+  // 否则直接使用当前目录下的uploads
+  return join(cwd, 'uploads');
+};
 
-// 获取uploads目录的绝对路径
-const uploadsDir = join(__dirname, '../../../../uploads');
+const uploadsDir = getUploadsDir();
 
 export async function DELETE({ request, url }) {
   try {

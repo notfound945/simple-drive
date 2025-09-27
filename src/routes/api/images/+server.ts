@@ -1,8 +1,21 @@
 import { readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import type { RequestHandler } from '@sveltejs/kit';
 
-const uploadsDir = join(process.cwd(), 'uploads');
+// 获取项目根目录的uploads文件夹
+// 在开发环境中，process.cwd() 指向项目根目录
+// 在生产环境中，process.cwd() 指向build目录，需要向上查找
+const getUploadsDir = () => {
+  const cwd = process.cwd();
+  // 如果当前目录是build目录，则向上查找uploads
+  if (cwd.endsWith('/build') || cwd.endsWith('\\build')) {
+    return join(dirname(cwd), 'uploads');
+  }
+  // 否则直接使用当前目录下的uploads
+  return join(cwd, 'uploads');
+};
+
+const uploadsDir = getUploadsDir();
 
 type SortOption = 'time-desc' | 'time-asc' | 'name' | 'size-desc' | 'size-asc';
 

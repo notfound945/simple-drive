@@ -6,7 +6,7 @@
 main.page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 1rem 140px 1rem;
+  padding: 0 1rem 220px 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -21,7 +21,13 @@ main.page {
 /* 响应式设计 */
 @media (max-width: 640px) {
   main.page {
-    padding-bottom: 120px;
+    padding-bottom: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  main.page {
+    padding-bottom: 180px;
   }
 }
 

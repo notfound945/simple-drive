@@ -291,7 +291,6 @@
 
 <main class="page">
   <Header />
-  
   <Main 
     {images}
     {myUploads}

@@ -81,8 +81,6 @@
 
   /* Layout button styles */
   .button-group.layout-group .btn {
-    width: 36px;
-    height: 36px;
     border-radius: 0.375rem;
     color: #6b7280;
   }

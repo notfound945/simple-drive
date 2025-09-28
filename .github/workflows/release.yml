@@ -48,7 +48,6 @@ jobs:
         cp start.sh release/
         cp start.bat release/
         cp start.ps1 release/
-        cp get-network-info.js release/
         cp ecosystem.config.js release/
         cp nginx.conf release/
         cp Dockerfile release/
@@ -122,7 +121,6 @@ jobs:
           ├── start.sh            # Linux/macOS 启动脚本
           ├── start.bat           # Windows 启动脚本
           ├── start.ps1           # PowerShell 启动脚本
-          ├── get-network-info.js # 获取网络信息脚本
           ├── package.json        # 项目配置
           ├── ecosystem.config.js # PM2 配置
           ├── nginx.conf          # Nginx 配置

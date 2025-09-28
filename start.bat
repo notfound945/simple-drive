@@ -66,19 +66,38 @@ echo [INFO] Starting server...
 echo [TIP] Press Ctrl+C to stop the server
 echo.
 
-REM Start application
-node index.js
+REM Start application in background and get the first network IP
+for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /c:"IPv4"') do (
+    set "ip=%%i"
+    set "ip=!ip: =!"
+    if not "!ip!"=="127.0.0.1" (
+        set "FIRST_IP=!ip!"
+        goto :found_ip
+    )
+)
+:found_ip
 
-REM If program exits abnormally, show error message
-if errorlevel 1 (
-    echo.
-    echo [ERROR] Server startup failed, error code: %errorlevel%
-    echo Please check:
-    echo   1. Is Node.js properly installed
-    echo   2. Are project dependencies installed (npm install)
-    echo   3. Is port %PORT% already in use
-    echo   4. Check error messages above
-    echo.
+REM Start server in background
+start /b node index.js
+
+REM Wait a moment for server to start
+timeout /t 3 /nobreak >nul
+
+REM Open browser
+if defined FIRST_IP (
+    echo [INFO] Opening browser at http://!FIRST_IP!:%PORT%
+    start http://!FIRST_IP!:%PORT%
+) else (
+    echo [INFO] Opening browser at http://localhost:%PORT%
+    start http://localhost:%PORT%
 )
 
+REM Wait for user to stop
+echo [INFO] Server is running. Press any key to stop...
+pause >nul
+
+REM Kill the background process
+taskkill /f /im node.exe >nul 2>&1
+
+echo [INFO] Server stopped.
 pause

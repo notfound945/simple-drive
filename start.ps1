@@ -33,11 +33,6 @@ if (-not (Test-Path "uploads")) {
     New-Item -ItemType Directory -Name "uploads" | Out-Null
 }
 
-if (-not (Test-Path "logs")) {
-    Write-Host "[INFO] Creating logs directory..." -ForegroundColor Yellow
-    New-Item -ItemType Directory -Name "logs" | Out-Null
-}
-
 # Set environment variables
 $env:NODE_ENV = "production"
 if (-not $env:PORT) { $env:PORT = "3000" }
@@ -47,7 +42,6 @@ Write-Host "[INFO] Environment configuration:" -ForegroundColor Green
 Write-Host "  - Run mode: $env:NODE_ENV" -ForegroundColor White
 Write-Host "  - Server port: $env:PORT" -ForegroundColor White
 Write-Host "  - Upload directory: $(Get-Location)\uploads" -ForegroundColor White
-Write-Host "  - Log directory: $(Get-Location)\logs" -ForegroundColor White
 Write-Host "  - File size limit: $env:BODY_SIZE_LIMIT" -ForegroundColor White
 Write-Host ""
 

@@ -12,8 +12,12 @@ export NODE_ENV=production
 export PORT=${PORT:-3000}
 export BODY_SIZE_LIMIT=4G
 
-echo "🌐 Starting server on port $PORT"
 echo "📁 Upload directory: $(pwd)/uploads"
+
+# Display network addresses
+node get-network-info.js
+
+echo "🌐 Starting server on port $PORT"
 
 # Start application
 node index.js

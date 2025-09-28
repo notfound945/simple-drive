@@ -47,6 +47,9 @@ echo   - Upload directory: %cd%\uploads
 echo   - File size limit: %BODY_SIZE_LIMIT%
 echo.
 
+REM Display network addresses
+node get-network-info.js
+
 echo [INFO] Starting server...
 echo [TIP] Press Ctrl+C to stop the server
 echo.

@@ -45,6 +45,9 @@ Write-Host "  - Upload directory: $(Get-Location)\uploads" -ForegroundColor Whit
 Write-Host "  - File size limit: $env:BODY_SIZE_LIMIT" -ForegroundColor White
 Write-Host ""
 
+# Display network addresses
+node get-network-info.js
+
 Write-Host "[INFO] Starting server..." -ForegroundColor Green
 Write-Host "[TIP] Press Ctrl+C to stop the server" -ForegroundColor Yellow
 Write-Host ""

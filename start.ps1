@@ -46,8 +46,19 @@ Write-Host "  - File size limit: $env:BODY_SIZE_LIMIT" -ForegroundColor White
 Write-Host ""
 
 # Display network addresses
-node get-network-info.js
+Write-Host ""
+Write-Host "Available addresses:" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Network access:" -ForegroundColor Yellow
 
+# Get network interfaces and their IP addresses
+$networkInterfaces = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -ne "127.0.0.1" -and $_.PrefixOrigin -ne "WellKnown" }
+foreach ($interface in $networkInterfaces) {
+    Write-Host "   http://$($interface.IPAddress):$env:PORT" -ForegroundColor White
+}
+
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "[INFO] Starting server..." -ForegroundColor Green
 Write-Host "[TIP] Press Ctrl+C to stop the server" -ForegroundColor Yellow
 Write-Host ""

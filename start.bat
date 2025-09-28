@@ -48,7 +48,19 @@ echo   - File size limit: %BODY_SIZE_LIMIT%
 echo.
 
 REM Display network addresses
-node get-network-info.js
+echo.
+echo Available addresses:
+echo ========================================
+echo Network access:
+for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /c:"IPv4"') do (
+    set "ip=%%i"
+    set "ip=!ip: =!"
+    if not "!ip!"=="127.0.0.1" (
+        echo    http://!ip!:%PORT%
+    )
+)
+echo ========================================
+echo.
 
 echo [INFO] Starting server...
 echo [TIP] Press Ctrl+C to stop the server
